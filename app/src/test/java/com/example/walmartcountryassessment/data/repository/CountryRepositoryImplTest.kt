@@ -118,4 +118,22 @@ class CountryRepositoryImplTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
+
+    @Test
+    fun `getCountryDetails should emit Failure when there is a network issue`() = runTest {
+        // Arrange
+        coEvery { apiService.getCountry() } throws UnknownHostException("Unable to connect. Please check your internet connection and try again.")
+
+        // Act & Assert
+        repository.getCountryDetails().test {
+            //First Emission Loading
+            assertTrue(awaitItem() is FetchCountryStates.Loading)
+            //Second Emission Failure
+            assertEquals(
+                FetchCountryStates.Failure("Unable to connect. Please check your internet connection and try again."),
+                awaitItem()
+            ) // Then Failure
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
 }
